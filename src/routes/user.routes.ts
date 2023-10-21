@@ -259,6 +259,12 @@ router.delete("/users/:id", deleteUser);
 
 /**
  * @swagger
+ * tags:
+ *   name: Tasks
+ *   description: API para operaciones tasks. REQUIERE ESTAR LOGEADO O CONTAR CON TOKEN DE ACCESO.
+ */
+/**
+ * @swagger
  * /tasks:
  *   post:
  *     summary: Crear una nueva tarea
