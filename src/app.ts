@@ -20,6 +20,21 @@ const options = {
       version: '1.0.0',
       description: 'Methods',
     },
+    components: {
+      securitySchemes: {
+        JWTToken: { 
+          type: 'apiKey',
+          in: 'header',
+          name: 'Authorization', 
+          description: 'Bearer Token',
+        },
+      },
+    },
+    security: [
+      {
+        JWTToken: [], 
+      },
+    ],
   },
   apis: ['src/routes/*.ts'], 
 };

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createUser, getUsers, getUserById, updateUser, deleteUser, loginUser } from "../controllers/user.controllers";
 import { createTask, deleteTask, getAllTasks, getTaskById, updateTask } from "../controllers/task.controllers";
-
+import { requireAuthentication } from "../auth/authMiddleware";
 
 const router = Router()
 
@@ -43,13 +43,54 @@ const router = Router()
  *               error: Internal Server Error
  */
 router.post("/auth/login", loginUser);
+
 /**
  * @swagger
  * tags:
  *   name: Users
  *   description: API para operaciones relacionadas con usuarios
  */
-
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     summary: Crear un nuevo usuario
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario creado
+ *         content:
+ *           application/json:
+ *             example:
+ *               id: 1
+ *               email: john@example.com
+ *               password: hashedPassword1
+ *               name: John Doe
+ *               active: true
+ *               createdAt: "2023-10-18T12:00:00.000Z"
+ *               updatedAt: "2023-10-18T12:00:00.000Z"
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error
+ */
+router.post("/users", createUser);
 /**
  * @swagger
  * /users:
@@ -110,7 +151,7 @@ router.get("/users", getUsers);
  *               createdAt: "2023-10-18T12:00:00.000Z"
  *               updatedAt: "2023-10-18T12:30:00.000Z"
  *       404:
- *         description: Usuario no encontrado
+ *         description: User not found
  *         content:
  *           application/json:
  *             example:
@@ -125,47 +166,7 @@ router.get("/users", getUsers);
 router.get("/users/:id", getUserById);
 
 
-/**
- * @swagger
- * /users:
- *   post:
- *     summary: Crear un nuevo usuario
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *               name:
- *                 type: string
- *     responses:
- *       200:
- *         description: Usuario creado
- *         content:
- *           application/json:
- *             example:
- *               id: 1
- *               email: john@example.com
- *               password: hashedPassword1
- *               name: John Doe
- *               active: true
- *               createdAt: "2023-10-18T12:00:00.000Z"
- *               updatedAt: "2023-10-18T12:00:00.000Z"
- *       500:
- *         description: Error del servidor
- *         content:
- *           application/json:
- *             example:
- *               error: Internal Server Error
- */
-router.post("/users", createUser);
+
 
 /**
  * @swagger
@@ -255,6 +256,57 @@ router.put("/users/:id", updateUser);
 router.delete("/users/:id", deleteUser);
 
 /*COMIENZO DE RUTAS PARA TASKS */
+
+/**
+ * @swagger
+ * /tasks:
+ *   post:
+ *     summary: Crear una nueva tarea
+ *     tags: [Tasks]
+ *     security:
+ *       - JWTToken: [] # Especifica el esquema de seguridad que requiere JWT
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *             required:
+ *               - title
+ *               - description
+ *               - status
+ *     responses:
+ *       200:
+ *         description: Tarea creada exitosamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               id: 1
+ *               title: Tarea 1
+ *               description: Descripción de la tarea 1
+ *               status: Pendiente
+ *       401:
+ *         description: Acceso no autorizado, inicie sesión
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Acceso no autorizado, inicie sesión
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error
+ */
+router.post("/tasks", requireAuthentication, createTask);
+
 /**
  * @swagger
  * /tasks:
@@ -290,135 +342,6 @@ router.delete("/users/:id", deleteUser);
  */
 router.get("/tasks", getAllTasks);
 
-
-/**
- * @swagger
- * /tasks:
- *   post:
- *     summary: Crear una nueva tarea
- *     tags: [Tasks]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               status:
- *                 type: string
- *             required:
- *               - title
- *               - description
- *               - status
- *     responses:
- *       200:
- *         description: Tarea creada exitosamente
- *         content:
- *           application/json:
- *             example:
- *               id: 1
- *               title: Tarea 1
- *               description: Descripción de la tarea 1
- *               status: Pendiente
- *       500:
- *         description: Error del servidor
- *         content:
- *           application/json:
- *             example:
- *               error: Internal Server Error
- */
-router.post("/tasks", createTask);
-
-/**
- * @swagger
- * /tasks/{id}:
- *   put:
- *     summary: Modificar una tarea por ID
- *     tags: [Tasks]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               status:
- *                 type: string
- *     responses:
- *       200:
- *         description: Tarea modificada exitosamente
- *         content:
- *           application/json:
- *             example:
- *             id: 3
- *             title: "string"
- *             description: "string"
- *             status: "string"
- *             userId: 2
- *             createdAt: "2023-10-19T04:38:28.172Z"
- *             updatedAt: "2023-10-19T04:48:09.940Z"
- *       404:
- *         description: Tarea no encontrada
- *         content:
- *           application/json:
- *             example:
- *               error: Task not found
- *       500:
- *         description: Error del servidor
- *         content:
- *           application/json:
- *             example:
- *               error: Internal Server Error
- */
-router.put("/tasks/:id", updateTask);
-
-/**
- * @swagger
- * /tasks/{id}:
- *   delete:
- *     summary: Eliminar una tarea por ID
- *     tags: [Tasks]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Tarea eliminada exitosamente
- *         content:
- *           application/json:
- *             example:
- *               message: Task deleted successfully
- *       404:
- *         description: Tarea no encontrada
- *         content:
- *           application/json:
- *             example:
- *               error: Task not found
- *       500:
- *         description: Error del servidor
- *         content:
- *           application/json:
- *             example:
- *               error: Internal Server Error
- */
-router.delete("/tasks/:id", deleteTask);
 
 /**
  * @swagger
@@ -458,7 +381,96 @@ router.delete("/tasks/:id", deleteTask);
  *             example:
  *               error: Internal Server Error
  */
-router.get("/tasks/:id", getTaskById);
+router.get("/tasks/:id",requireAuthentication, getTaskById);
+
+/**
+ * @swagger
+ * /tasks/{id}:
+ *   put:
+ *     summary: Modificar una tarea por ID
+ *     tags: [Tasks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tarea modificada exitosamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               id: 3
+ *               title: "string"
+ *               description: "string"
+ *               status: "string"
+ *               userId: 2
+ *               createdAt: "2023-10-19T04:38:28.172Z"
+ *               updatedAt: "2023-10-19T04:48:09.940Z"
+ *       404:
+ *         description: Tarea no encontrada
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Task not found
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error
+ */
+router.put("/tasks/:id" ,requireAuthentication , updateTask);
+
+/**
+ * @swagger
+ * /tasks/{id}:
+ *   delete:
+ *     summary: Eliminar una tarea por ID
+ *     tags: [Tasks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tarea eliminada exitosamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Task deleted successfully
+ *       404:
+ *         description: Tarea no encontrada
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Task not found
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error
+ */
+router.delete("/tasks/:id",requireAuthentication, deleteTask);
+
+
 
 
 

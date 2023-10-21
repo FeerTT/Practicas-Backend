@@ -43,14 +43,22 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const getUserById = async (req: Request, res: Response) => {
     try {
-        const userId = req.params.id;
-        const user = await User.findOne({ where: { id: userId as any } });
-        return res.json(user);
+      const userId = req.params.id;
+  
+      const user = await User.findOne({ where: { id: userId as any } });
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      return res.json(user);
     } catch (error) {
-        console.error("Error fetching user:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+      console.error("Error al obtener usuario por ID:", error);
+      return res.status(500).json({ error: "Error interno del servidor" });
     }
-};
+  };
+
+
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const userId = req.params.id;
@@ -62,9 +70,11 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-
-        
-        user.password = password || user.password;
+        if (password) {
+            
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+        }
         user.name = name || user.name;
 
         await user.save();

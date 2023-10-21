@@ -4,24 +4,23 @@ import { User } from "../entities/User";
 
 
 export const createTask = async (req: Request, res: Response) => {
+
   try {
-    // Extraer datos de la solicitud
     const { title, description, status, userId } = req.body;
 
-    // Verificar si el usuario existe
     const user = await User.findOne({ where: { id: userId } });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Crear la tarea y asignar al usuario
+    
     const task = new Task();
     task.title = title;
     task.description = description;
     task.status = status;
-    task.user = user; // Asignar una instancia de usuario
-    // Guardar la tarea en la base de datos
+    task.user = user; 
+
     await task.save();
 
     return res.status(201).json(task);
@@ -91,6 +90,8 @@ export const createTask = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   };
+
+  
   export const getAllTasks = async (req: Request, res: Response) => {
     try {
       const tasks = await Task.find();
